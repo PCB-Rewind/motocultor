@@ -12,7 +12,7 @@ Note les ~108 groupes (A+ / A / B / C / X), suis ton écoute des albums sur 8 se
 - **Notation par jour** des 4 journées du festival, têtes d'affiche repérées (★).
 - **5 niveaux** : A+ (incontournable), A, B, C, X (zappe).
 - **Running auto** : ton parcours trié par tes priorités, A+ d'abord, C et X écartés. Les jours à plusieurs A+ sont signalés pour anticiper les conflits d'horaires.
-- **Multi-personnes** : toi, Marine, les potes notez dans le même seau. Les avis des autres s'affichent à côté de chaque groupe, ton running reste basé sur **tes** notes.
+- **Multi-personnes** : Les avis des autres s'affichent à côté de chaque groupe, ton running reste basé sur **tes** notes.
 - **Suivi d'écoute** : coche les groupes écoutés, barre de progression, planning d'écoute réparti sur 8 semaines (`sem. 1` = à faire en priorité).
 - **Lien Spotify** sur chaque groupe.
 - Fonctionne sur **Mac, iPhone, Android** — une seule URL, notes synchronisées.
