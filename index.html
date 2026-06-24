@@ -194,6 +194,17 @@
 </head>
 <body>
 
+<script>
+/* Anti-flash : si l'utilisateur est déjà connecté, on cache le gate
+   avant même le premier rendu, donc aucun clignotement au rechargement. */
+(function(){try{
+  if(localStorage.getItem("moto2026_cfg")){
+    document.documentElement.style.setProperty("--gate-init","none");
+  }
+}catch(e){}})();
+</script>
+<style>#gate{display:var(--gate-init,flex)}</style>
+
 <!-- GATE -->
 <div id="gate">
   <div class="gate-card">
@@ -501,7 +512,17 @@ function boot(){
   document.addEventListener("visibilitychange",async()=>{if(!document.hidden){await pull();render()}});
 }
 (async function init(){
-  if(cfg){if(await pull()){$("#gate").classList.add("hidden");boot();return}}
+  if(cfg){
+    // identifiants connus : on affiche l'appli TOUT DE SUITE (pas de flash du gate)
+    $("#gate").classList.add("hidden");
+    if(!DATA.users[cfg.name])DATA.users[cfg.name]={grades:{},listened:{}};
+    boot();
+    // synchro en arrière-plan ; si elle réussit, on rafraîchit l'affichage avec les données du seau
+    const ok=await pull();
+    if(ok){render()}
+    else{toast("⚠ Hors-ligne — synchro en attente")}
+    return;
+  }
   openGate(true);
 })();
 </script>
