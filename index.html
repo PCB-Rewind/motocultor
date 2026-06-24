@@ -190,6 +190,52 @@
   /* toast */
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:30px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.25s;z-index:50}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* nom cliquable */
+  .b-name{cursor:pointer}
+  .b-name:hover{color:var(--rouille)}
+  .b-name .info-ic{width:15px;height:15px;color:var(--ink-faint);flex-shrink:0;transition:.15s}
+  .b-name:hover .info-ic{color:var(--rouille)}
+
+  /* ============ MODALE FICHE ============ */
+  #modal{position:fixed;inset:0;z-index:90;display:none;align-items:flex-end;justify-content:center;padding:0}
+  #modal.show{display:flex}
+  @media(min-width:640px){#modal{align-items:center;padding:24px}}
+  .modal-bg{position:absolute;inset:0;background:rgba(36,28,22,.5);backdrop-filter:blur(4px);animation:fade .2s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal-card{position:relative;background:var(--surface);width:100%;max-width:540px;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;box-shadow:var(--shadow-lg);animation:slideup .3s cubic-bezier(.2,.8,.2,1)}
+  @media(min-width:640px){.modal-card{border-radius:18px;animation:pop .3s cubic-bezier(.2,.8,.2,1)}}
+  @keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
+  .modal-grip{width:38px;height:4px;background:var(--line);border-radius:3px;margin:10px auto 0}
+  @media(min-width:640px){.modal-grip{display:none}}
+  .modal-head{padding:16px 22px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:2}
+  .modal-head .mh-top{display:flex;align-items:flex-start;gap:12px}
+  .modal-head h3{font-size:22px;font-weight:800;letter-spacing:-.02em;flex:1;line-height:1.15}
+  .modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--surface-2);color:var(--ink-soft);font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .modal-close:hover{background:var(--line);color:var(--ink)}
+  .modal-origin{font-size:12.5px;color:var(--ink-faint);font-weight:500;margin-top:5px}
+  .modal-body{padding:18px 22px 8px}
+  .fiche-row{margin-bottom:16px}
+  .fiche-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--rouille);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .fiche-val{font-size:14.5px;line-height:1.55;color:var(--ink)}
+  .fiche-pitch{font-size:14.5px;line-height:1.6;color:var(--ink)}
+  .fiche-album{font-weight:600}
+  .verdict{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;padding:8px 14px;border-radius:10px;margin-top:2px}
+  .verdict.prio{background:var(--aplus-bg);color:var(--aplus)}
+  .verdict.curio{background:var(--a-bg);color:var(--a)}
+  .verdict.trou{background:var(--surface-2);color:var(--ink-soft)}
+  .modal-actions{display:flex;gap:8px;padding:12px 22px 22px;position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line)}
+  .modal-spot{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:#1DB954;color:#fff;border:none;padding:13px;border-radius:11px;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none}
+  .modal-spot:hover{filter:brightness(1.05)}
+  .modal-spot svg{width:18px;height:18px}
+  .modal-grades{display:flex;gap:5px;padding:0 22px 8px}
+  .modal-grades .mg-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);align-self:center;margin-right:4px}
+  .mg{flex:1;height:40px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:700;cursor:pointer;border-radius:9px;transition:.13s}
+  .mg[data-g="A+"].sel{background:var(--aplus);border-color:var(--aplus);color:#fff}
+  .mg[data-g="A"].sel{background:var(--a);border-color:var(--a);color:#fff}
+  .mg[data-g="B"].sel{background:var(--b);border-color:var(--b);color:#fff}
+  .mg[data-g="C"].sel{background:var(--c);border-color:var(--c);color:#fff}
+  .mg[data-g="X"].sel{background:var(--x);border-color:var(--x);color:#fff}
 </style>
 </head>
 <body>
@@ -288,7 +334,261 @@
 
 <div id="toast"></div>
 
+<!-- MODALE FICHE GROUPE -->
+<div id="modal">
+  <div class="modal-bg" id="modal-bg"></div>
+  <div class="modal-card" id="modal-card"></div>
+</div>
+
 <script>
+// ============================================================
+//  FICHES GROUPES — MOTOCULTOR 2026
+//  Rédigé en critique métal. Champs par groupe :
+//    o   : origine + années d'activité
+//    fans: "pour les fans de" (repères)
+//    album: l'album porte d'entrée
+//    pitch: 2-3 phrases de critique
+//    live: verdict festival (PRIO / CURIOSITÉ / SI TROU)
+// ============================================================
+const FICHES = {
+
+/* ===================== JEUDI 13 ===================== */
+
+"Godsmack":{o:"Boston, US · depuis 1995",fans:"Alice in Chains, Disturbed, Five Finger Death Punch",album:"Godsmack (1998)",pitch:"Le rouleau-compresseur post-grunge devenu institution du metal grand public américain. Riffs simples mais imparables, voix rocailleuse de Sully Erna, et un sens du refrain fédérateur qui fait mouche en open air. Pas le groupe le plus subtil de l'affiche, mais l'un des plus efficaces sur scène.",live:"PRIO — tête d'affiche calibrée pour les festivals, set best-of garanti."},
+
+"Primus":{o:"San Francisco, US · depuis 1984",fans:"Mr. Bungle, Frank Zappa, Tool",album:"Sailing the Seas of Cheese (1991)",pitch:"L'OVNI absolu de l'affiche. La basse claquée et hallucinée de Les Claypool mène un funk-rock cartoonesque, absurde et virtuose qui ne ressemble à rien d'autre. On adhère ou on déteste, mais c'est un spectacle en soi — un moment à part dans un festival metal.",live:"PRIO — expérience unique, à voir au moins une fois dans sa vie."},
+
+"Amenra":{o:"Courtrai, Belgique · depuis 1999",fans:"Neurosis, Cult of Luna, Converge",album:"Mass VI (2017)",pitch:"La grand-messe post-metal/sludge la plus intense d'Europe. Lenteur écrasante, hurlements cathartiques de Colin H. van Eeckhout, visuels en noir et blanc : c'est moins un concert qu'une cérémonie. Un des sommets émotionnels possibles du week-end si on accepte de se laisser engloutir.",live:"PRIO — live transcendant, mais exigeant. À voir concentré, pas en passant."},
+
+"Death Angel":{o:"San Francisco, US · depuis 1982",fans:"Exodus, Testament, Overkill",album:"The Ultra-Violence (1987)",pitch:"Vétérans de la Bay Area thrash, toujours affûtés quarante ans après. Mark Osegueda est un frontman bête de scène, et le groupe envoie un thrash véloce et sans gras. Valeur sûre pour un pit de l'après-midi/début de soirée.",live:"PRIO — thrash old-school énergique, pit garanti."},
+
+"Municipal Waste":{o:"Richmond, US · depuis 2001",fans:"D.R.I., Suicidal Tendencies, Nuclear Assault",album:"The Art of Partying (2007)",pitch:"Les rois du crossover thrash fait pour la bière et le circle pit. Morceaux courts, vitesse maximale, humour potache assumé. Aucune prétention, juste 45 minutes de chaos jubilatoire — l'un des meilleurs groupes de l'affiche pour se défouler.",live:"PRIO — set festif et explosif, le fun à l'état pur."},
+
+"Oomph!":{o:"Wolfsburg, Allemagne · depuis 1989",fans:"Rammstein, KMFDM, Eisbrecher",album:"Wahrheit oder Pflicht (2004)",pitch:"Pionniers de la Neue Deutsche Härte — ils ont en partie inventé le moule où Rammstein s'est engouffré. Metal industriel teuton, refrains martelés en allemand, esthétique théâtrale. Solide même si moins spectaculaire que leurs héritiers.",live:"CURIOSITÉ — efficace pour les amateurs d'indus allemand."},
+
+"Kittie":{o:"London (Ontario), Canada · depuis 1996",fans:"Otep, Jinjer, Arch Enemy",album:"Spit (2000)",pitch:"Groupe 100% féminin culte du nu/groove metal, revenu en 2024 après une longue éclipse. Plus lourd et death-tinté qu'à leurs débuts MTV. Le retour d'un nom marquant des années 2000 ; curiosité historique autant que set sincarné.",live:"CURIOSITÉ — intérêt fort pour qui a grandi avec eux."},
+
+"200 Stab Wounds":{o:"Cleveland, US · depuis 2019",fans:"Gatecreeper, Undeath, Sanguisugabogg",album:"Slave to the Scalpel (2021)",pitch:"Une des grosses sensations du nouveau death metal US. Groove poisseux, riffs HM-2 dégueulasses, brutalité directe sans chichi. La relève death qui monte fort — set parfait pour un pit bien crade.",live:"PRIO si tu aimes le death moderne — montée en puissance évidente."},
+
+"Battlesnake":{o:"Sydney, Australie · depuis 2019",fans:"Skull Fist, Steel Panther, Anvil",album:"Chefs Kiss (2024)",pitch:"Heavy/speed metal australien au second degré théâtral et flamboyant. Costumes, énergie débridée, riffs qui carburent : un groupe pensé pour la scène plus que pour le casque. Bonne pioche pour un set fun et bordélique.",live:"CURIOSITÉ — show décomplexé, sympa en plein après-midi."},
+
+"Sanguisugabogg":{o:"Columbus, US · depuis 2018",fans:"200 Stab Wounds, Undeath, Cannibal Corpse",album:"Tortured Whole (2021)",pitch:"Death metal caverneux, lent et gluant, à l'humour adolescent crasseux. Du slam et du groove conçus pour le mosh. Pas de finesse, c'est le but : un set ultra-physique pour les amateurs de death bien gras.",live:"SI TROU — efficace mais répétitif sur la durée."},
+
+"Gaerea":{o:"Portugal · depuis 2016",fans:"Mgła, Uada, Wolves in the Throne Room",album:"Limbo (2020)",pitch:"Black metal moderne et mélodique, atmosphérique sans être mou, porté par une intensité scénique réelle (cagoules, présence habitée). L'un des noms les plus excitants du black metal européen actuel. Set immersif si la lumière s'y prête.",live:"PRIO si tu aimes le black — un des meilleurs live du genre aujourd'hui."},
+
+"Bloodbath":{o:"Suède · depuis 1998",fans:"Entombed, Dismember, Bolt Thrower",album:"Resurrection Through Carnage (2002)",pitch:"Supergroupe death metal suédois (membres de Katatonia, Opeth…) dédié au son Stockholm old-school. Riffs de tronçonneuse, groove morbide, plaisir coupable de connaisseurs. Une valeur sûre pour les puristes du death à l'ancienne.",live:"PRIO — death suédois canonique, exécution impeccable."},
+
+"Unearth":{o:"Boston, US · depuis 1998",fans:"Killswitch Engage, As I Lay Dying, Shadows Fall",album:"The Oncoming Storm (2004)",pitch:"Piliers du metalcore mélodique de la vague du Massachusetts. Riffs tranchants, breakdowns calibrés, énergie de vétérans qui savent tenir une scène. Rien de révolutionnaire mais une mécanique de festival rodée.",live:"CURIOSITÉ — fiable pour un pit metalcore."},
+
+"Komodrag & The Mounodor":{o:"France · depuis 2016",fans:"Kyuss, Truckfighters, Fu Manchu",album:"Liquid Sun (2018)",pitch:"Stoner/psych français aux longues plages hypnotiques et fuzzées. Plus planant que bagarreur, idéal pour décompresser entre deux pits. Belle pioche découverte pour les amateurs de gros riffs cosmiques.",live:"SI TROU — parfait pour une pause groovy."},
+
+"Pilori":{o:"France · depuis ~2018",fans:"Hangman's Chair, Birds in Row, Celeste",album:"à découvrir sur scène",pitch:"Hardcore français sombre et habité, dans la lignée d'une scène hexagonale très vivante. Intensité brute, urgence punk. Set court et frontal à privilégier si tu aimes le hardcore qui pue la sueur.",live:"SI TROU — bonne dose d'énergie locale."},
+
+"Celkilt x Bagad Ar Meilhoù Glaz":{o:"France (Bretagne) · projet festival",fans:"Dropkick Murphys, Flogging Molly, Soldat Louis",album:"set unique celtic punk",pitch:"Celtic punk croisé avec un bagad breton : cornemuses, énergie festive et fierté régionale pour un set taillé pour Carhaix. Plus fête que metal, mais imparable en collectif. Un moment de communion locale.",live:"CURIOSITÉ — l'ambiance bretonne à fond, à vivre en groupe."},
+
+"Denez":{o:"France (Bretagne) · figure du chant breton",fans:"Alan Stivell, Nolwenn Leroy (registre trad), kan ha diskan",album:"Mil Hent (2018)",pitch:"Denez Prigent, maître du kan ha diskan et du chant breton contemporain. Hors-genre sur une affiche metal, mais sa voix et ses textures électro-trad créent un moment singulier et puissant. À voir comme une respiration culturelle.",live:"CURIOSITÉ — dépaysant, fort en émotion si on accroche."},
+
+"FauxX":{o:"France · scène émergente",fans:"à situer sur place",pitch:"Jeune formation française à découvrir — peu de matière disponible encore, ce qui en fait justement une carte à jouer pour les curieux. À écouter en amont pour se faire son propre avis avant le festival.",live:"SI TROU — pari découverte."},
+
+"Brieg Guerveno":{o:"France (Bretagne) · depuis ~2010",fans:"rock breton, chanson sombre, post-rock",album:"An Tasmant Gwenn",pitch:"Rock en langue bretonne, atmosphérique et mélancolique, porté par une vraie identité poétique. À contre-courant de la brutalité ambiante, une parenthèse intimiste et locale. Pour qui veut sortir des sentiers battus.",live:"SI TROU — belle découverte régionale."}
+
+};
+
+/* ===================== VENDREDI 14 ===================== */
+Object.assign(FICHES, {
+
+"Slaughter to Prevail":{o:"Ekaterinbourg, Russie / UK · depuis 2014",fans:"Lorna Shore, Acrania, Thy Art Is Death",album:"Kostolom (2021)",pitch:"Phénomène deathcore mondial porté par le growl abyssal et le charisme masqué d'Alex Terrible. Breakdowns démolisseurs, mise en scène spectaculaire, communauté énorme. C'est lourd, théâtral et taillé pour faire trembler une grande scène.",live:"PRIO — un des plus gros shows deathcore actuels, pit dantesque."},
+
+"Lord of the Lost":{o:"Hambourg, Allemagne · depuis 2007",fans:"Rammstein, HIM, Marilyn Manson",album:"Thornstar (2018)",pitch:"Dark/industrial metal glam et théâtral, devenu massif en Allemagne (et représentant à l'Eurovision 2023). Sens du spectacle, refrains gothiques accrocheurs, esthétique soignée. Du grand show pour une fin de journée.",live:"PRIO — performance scénique généreuse et léchée."},
+
+"Mass Hysteria":{o:"Paris, France · depuis 1993",fans:"Sepultura, Rage Against the Machine, Pleymo",album:"Contraddiction (1999)",pitch:"Institution du metal indus français, machine à fédérer les foules hexagonales. Mouss Kelai harangue, les riffs cognent, et les classiques en français déclenchent des mouvements de masse. Un des sets les plus communiels possibles pour un public français.",live:"PRIO — chez eux, ambiance survoltée garantie."},
+
+"Paradise Lost":{o:"Halifax, UK · depuis 1988",fans:"My Dying Bride, Katatonia, Type O Negative",album:"Draconian Times (1995)",pitch:"Pères fondateurs du death/doom et du gothic metal. Trente-cinq ans de carrière, une voix de Nick Holmes devenue plus profonde, des mélodies sombres et nobles. Un set de légende pour qui aime le metal grave et mélancolique.",live:"PRIO — pan d'histoire du metal, classe absolue."},
+
+"Emperor":{o:"Notodden, Norvège · 1991-2001, reformations",fans:"Mayhem, Dimmu Borgir, Enslaved",album:"In the Nightside Eclipse (1994)",pitch:"Monument absolu du black metal symphonique norvégien. Ihsahn et les siens ont écrit des classiques fondateurs du genre. Leurs reformations sont rares et révérées : voir Emperor en festival, c'est cocher une ligne d'histoire du metal extrême.",live:"PRIO — événement, l'un des sommets de l'affiche pour les initiés."},
+
+"Soen":{o:"Suède · depuis 2010",fans:"Tool, Opeth, Karnivool",album:"Lykaia (2017)",pitch:"Prog metal d'une précision chirurgicale, longtemps comparé à Tool puis affirmé dans son propre lyrisme. Voix superbe de Joel Ekelöf, dynamiques amples, musicalité rare. Set à savourer pour les amateurs de metal cérébral et mélodique.",live:"PRIO si tu aimes le prog — exécution somptueuse."},
+
+"Alcest":{o:"France · depuis 2000",fans:"Deafheaven, Lantlôs, Slowdive",album:"Écailles de Lune (2010)",pitch:"Inventeurs du blackgaze : Neige a fusionné black metal et shoegaze en une musique lumineuse et nostalgique unique au monde. Sur scène, ça oscille entre douceur planante et déferlantes. Une des plus belles signatures françaises du metal moderne.",live:"PRIO — atmosphère envoûtante, fierté nationale du genre."},
+
+"Chelsea Grin":{o:"Salt Lake City, US · depuis 2007",fans:"Suicide Silence, Whitechapel, Lorna Shore",album:"Desolation of Eden (2010)",pitch:"Deathcore robuste de la vieille garde 2010s, breakdowns lourds et growls profonds. Sans réinventer le genre, ils en livrent une version solide et efficace en live. Valeur sûre pour un pit deathcore.",live:"CURIOSITÉ — fiable pour les amateurs du genre."},
+
+"Textures":{o:"Pays-Bas · 2001-2017, retour 2024",fans:"Meshuggah, Cynic, The Ocean",album:"Dualism (2011)",pitch:"Pionniers du djent/prog européen, dissous puis reformés. Polyrythmies massives mais musicales, atmosphères ambitieuses. Leur retour est un événement pour la scène prog : set technique et immersif.",live:"PRIO si tu aimes le djent — retour attendu, gros niveau."},
+
+"Master Boot Record":{o:"Italie · depuis 2016",fans:"Carpenter Brut, Perturbator, chiptune metal",album:"Direct Memory Access (2019)",pitch:"Projet unique : metal instrumental joué par des synthés/ordinateurs, esthétique 8-bit et hardware vintage. Mi-concert, mi-performance geek, c'est aussi étrange qu'hypnotique. Une curiosité réjouissante pour cerveaux retro-tech.",live:"CURIOSITÉ — concept fou, parfait pour les amateurs de synthwave/chiptune."},
+
+"Coroner":{o:"Suisse · 1983-1996, retour 2010",fans:"Voivod, Watchtower, Sadus",album:"Mental Vortex (1991)",pitch:"Légende suisse du thrash technique, longtemps culte chez les connaisseurs. Riffs alambiqués, jeu virtuose, intelligence rare dans le thrash. Set pointu pour amateurs exigeants — du metal de musiciens.",live:"PRIO si tu aimes le thrash technique — référence respectée."},
+
+"Cage Fight":{o:"UK · depuis 2021",fans:"Slipknot (énergie), Code Orange, hardcore/thrash",album:"Cage Fight (2022)",pitch:"Croisement hardcore/thrash mené par une chanteuse à la rage communicative (Rachel Aspe, ex-scène française). Court, frontal, sans temps mort. Set parfait pour exploser dans un pit.",live:"SI TROU — décharge d'énergie brute."},
+
+"Eihwar":{o:"France · depuis 2021",fans:"Heilung, Danheim, Wardruna (versant guerrier)",album:"Viking War Trance (2023)",pitch:"\"Viking war music\" : transe nordique martelée, percussions tribales et électro guerrière. Plus rituel que metal, redoutablement immersif en live avec la bonne mise en scène. Phénomène montant sur les festivals.",live:"CURIOSITÉ — transe collective, fort potentiel scénique."},
+
+"Hellripper":{o:"Écosse · depuis 2014",fans:"Venom, Midnight, Motörhead",album:"The Affair of the Poisons (2020)",pitch:"Speed/black metal à l'ancienne, sale et galopant, mené par l'homme-orchestre James McBain. Riffs Motörhead sous stéroïdes, énergie punk. Set jouissif et sans prétention pour headbangers.",live:"SI TROU — du speed crade et fun."},
+
+"Iotunn":{o:"Danemark · depuis 2010",fans:"Wilderun, Dark Tranquillity, Insomnium",album:"Access All Worlds (2021)",pitch:"Prog death mélodique aux envolées cosmiques et au chant clair superbe. Une montée en réputation rapide grâce à des compositions amples et lumineuses. Pépite pour amateurs de death progressif et atmosphérique.",live:"CURIOSITÉ — révélation prog-death des dernières années."},
+
+"Bölzer":{o:"Suisse · depuis 2008",fans:"Deathspell Omega, Antaeus, death/black abstrait",album:"Hero (2016)",pitch:"Death/black metal en duo, dissonant et tellurique, à l'identité très personnelle. Exigeant, parfois déroutant, mais d'une puissance hypnotique en concert. Pour oreilles aventureuses du metal extrême.",live:"SI TROU — singulier, réservé aux curieux du genre."},
+
+"Darkened Nocturn Slaughtercult":{o:"Allemagne · depuis 1997",fans:"Marduk, Dark Funeral, Gospel of the Horns",album:"Follow the Calls for Battle (2007)",pitch:"Black metal allemand orthodoxe et glacial, mené par la frontwoman Onielar. Pur jus seconde vague, sans concession ni modernisme. Set radical pour les amateurs de black sombre et frontal.",live:"SI TROU — black metal puriste."},
+
+"Miracle of Sound":{o:"Irlande · depuis 2010",fans:"Sabaton (côté épique), musiques de jeux vidéo, geek rock",album:"Level 7 (2017)",pitch:"Gavin Dunne écrit des hymnes rock inspirés de jeux vidéo et de pop culture. Mélodique, fédérateur, fun et nerdy. Une parenthèse légère et entraînante sur une affiche extrême — clin d'œil à la culture gamer.",live:"CURIOSITÉ — sympa et fédérateur, surtout si tu es geek/gamer."},
+
+"Nawather":{o:"Tunisie · depuis 2009",fans:"Melechesh, Orphaned Land, Nile",album:"Wessana (2023)",pitch:"Death metal oriental mêlant brutalité et mélodies arabo-andalouses. Une couleur rare sur l'affiche, riche et dépaysante. Set qui apporte une vraie singularité culturelle au week-end.",live:"CURIOSITÉ — death oriental original, à découvrir."},
+
+"Skaphos":{o:"Allemagne · depuis ~2015",fans:"Ahab, Mare Cognitum, black/death atmosphérique",album:"à creuser avant le set",pitch:"Black/death atmosphérique aux thèmes lovecraftiens et marins. Profond, enveloppant, encore confidentiel — typiquement le genre de nom qu'on est content d'avoir découvert avant tout le monde.",live:"SI TROU — pari pour amateurs d'atmosphérique."},
+
+"Stille Volk":{o:"France (Pyrénées) · depuis 1993",fans:"Eluveitie, Dornenreich, folk pagan",album:"Hantaoma (2001)",pitch:"Folk pagan français aux instruments traditionnels (cornemuses, vielles), inspiré du paganisme pyrénéen. Hors du temps, plus mystique que brutal. Une respiration folk pour qui aime les ambiances rituelles et boisées.",live:"SI TROU — dépaysant et atmosphérique."},
+
+"Unleashed":{o:"Suède · depuis 1989",fans:"Bolt Thrower, Amon Amarth, Grave",album:"Where No Life Dwells (1991)",pitch:"Vétérans du death metal suédois à thématique viking, fidèles à un son massif et martial depuis trente-cinq ans. Pas de fioritures, du death qui charge. Valeur sûre old-school pour un pit guerrier.",live:"CURIOSITÉ — death suédois canonique et martial."},
+
+"Urne":{o:"UK · depuis 2018",fans:"Mastodon, Gojira, High on Fire",album:"Serpent & Spirit (2021)",pitch:"Sludge/prog britannique musclé et mélodique, dans la lignée des grands noms du genre. Riffs lourds, sens de la composition, montée en réputation solide. Set robuste pour amateurs de metal massif et intelligent.",live:"CURIOSITÉ — belle pioche sludge/prog moderne."},
+
+"Vansind":{o:"Danemark · depuis 2016",fans:"Eluveitie, Heidevolk, Korpiklaani",album:"Mod Nord (2021)",pitch:"Folk metal danois chanté dans la langue locale, mélodique et entraînant. Énergie festive sans tomber dans la parodie. Set sympathique pour amateurs de folk metal et d'ambiance bon enfant.",live:"SI TROU — folk metal convivial."},
+
+"Visions of Atlantis":{o:"Autriche · depuis 2000",fans:"Nightwish, Delain, Leaves' Eyes",album:"The Deep & the Dark (2018)",pitch:"Symphonic metal à thématique maritime/pirate, mené par deux voix (féminine puissante + chant masculin). Refrains grandiloquents, esthétique soignée. Set généreux pour amateurs de metal symphonique mélodique.",live:"CURIOSITÉ — efficace pour les fans de symphonic."},
+
+"Guineapig":{o:"Belgique · depuis ~2007",fans:"Aborted, Carcass, Napalm Death",album:"set grindcore frontal",pitch:"Grindcore belge brutal et rapide, morceaux ultra-courts, intensité maximale. Pas fait pour durer une heure mais pour t'arracher la tête en vingt minutes. Set défouloir pour amateurs d'extrême.",live:"SI TROU — décharge grind, courte et violente."},
+
+"Filth":{o:"France · scène hardcore",fans:"hardcore/beatdown français, Nasty, Kickback",album:"à découvrir sur place",pitch:"Hardcore/beatdown français frontal, taillé pour le mosh. Énergie locale brute et sans détour. Set court à privilégier si tu veux te défouler entre deux têtes d'affiche.",live:"SI TROU — pit hardcore garanti."},
+
+"Gravity":{o:"France · scène beatdown",fans:"beatdown hardcore, Malevolence, Kublai Khan",album:"à découvrir sur place",pitch:"Beatdown hardcore hexagonal, breakdowns lourds et mentalité pit. Brutal, direct, conçu pour le contact physique. Pour les amateurs de hardcore qui tabasse.",live:"SI TROU — moshpart assuré."},
+
+"Hrafngrímr":{o:"France · folk/black",fans:"folk black metal, Saor, Heilung (versant froid)",album:"à découvrir avant le set",pitch:"Folk/black metal français aux ambiances nordiques et nature. Encore confidentiel, donc parfait pour les chercheurs de pépites. Set atmosphérique pour amateurs du genre.",live:"SI TROU — découverte folk/black."},
+
+"Ice Sealed Eyes":{o:"France · death/doom",fans:"Hooded Menace, death/doom, Asphyx",album:"à découvrir avant le set",pitch:"Death/doom français lent et écrasant, atmosphère funèbre. Pour qui aime le metal qui prend son temps et pèse une tonne. Set immersif et grave.",live:"SI TROU — doom lourd pour amateurs."}
+
+});
+
+/* ===================== SAMEDI 15 ===================== */
+Object.assign(FICHES, {
+
+"Within Temptation":{o:"Pays-Bas · depuis 1996",fans:"Nightwish, Evanescence, Epica",album:"The Heart of Everything (2007)",pitch:"Géants du symphonic metal européen, portés par la voix immense de Sharon den Adel. Hymnes grandioses, production cinématographique, show à grand spectacle. Tête d'affiche faite pour embraser une grande scène en fin de soirée.",live:"PRIO — show majeur, refrains repris par des milliers de voix."},
+
+"Eisbrecher":{o:"Allemagne · depuis 2003",fans:"Rammstein, Oomph!, Megaherz",album:"Sturmfahrt (2017)",pitch:"Neue Deutsche Härte taillée pour la scène : refrains martelés, esthétique nautique/militaire, efficacité redoutable. Moins pyrotechnique que Rammstein mais d'une mécanique imparable. Set fédérateur pour amateurs d'indus allemand.",live:"PRIO — machine de guerre scénique, ambiance massive."},
+
+"Leprous":{o:"Norvège · depuis 2001",fans:"Tool, Steven Wilson, Haken",album:"The Congregation (2015)",pitch:"Prog metal devenu prog tout court : la voix exceptionnelle d'Einar Solberg porte des compositions émotionnelles, tendues et raffinées. Un des groupes les plus singuliers et respectés de la scène actuelle. Set pour mélomanes exigeants.",live:"PRIO — performance vocale et musicale de très haut vol."},
+
+"Perturbator":{o:"France · depuis 2012",fans:"Carpenter Brut, Gunship, Mega Drive",album:"The Uncanny Valley (2016)",pitch:"Figure de proue du darksynth/cyberpunk. James Kent transforme le metal en cathédrale électronique sombre, néon et cinématique. En live, c'est un déferlement audiovisuel hypnotique. Set parfait pour une nuit de festival.",live:"PRIO — expérience immersive nocturne unique sur l'affiche."},
+
+"Anaal Nathrakh":{o:"Birmingham, UK · depuis 1999",fans:"Mayhem, Napalm Death, Mysticum",album:"The Codex Necro (2001)",pitch:"Le chaos fait musique : black/grind/death extrême, apocalyptique, avec des refrains étonnamment épiques surgis du maelström. Intensité quasi insoutenable et cathartique. Set radical pour les amateurs d'extrême pur.",live:"PRIO si tu aimes l'extrême — violence sonore totale."},
+
+"Omnium Gatherum":{o:"Finlande · depuis 1996",fans:"Insomnium, Dark Tranquillity, Be'lakor",album:"New World Shadows (2011)",pitch:"Melodic death finlandais lumineux, mélancolique et mélodique à souhait. Claviers atmosphériques, leads chantants, savoir-faire scandinave. Set chaleureux pour amateurs de death mélodique.",live:"CURIOSITÉ — melodeath de qualité, valeur sûre."},
+
+"Nevermore":{o:"Seattle, US · 1991-2011, retour",fans:"Sanctuary, Iced Earth, Symphony X",album:"Dead Heart in a Dead World (2000)",pitch:"Culte du prog/power metal sombre, porté par la voix de Warrel Dane (disparu en 2017) — leur retour soulève donc des questions de lineup à vérifier, mais le répertoire est immense. Riffs de Jeff Loomis, intensité dramatique. Événement pour les fidèles.",live:"PRIO si le line-up tient ses promesses — répertoire légendaire."},
+
+"Necrowretch":{o:"France · depuis 2008",fans:"Possessed, Morbid Angel, Sadistik Exekution",album:"Bestial Rise (2013)",pitch:"Death/black metal français crasseux et old-school, à l'énergie démoniaque. Pas de modernisme, du metal extrême brut de décoffrage. Set sale et efficace pour amateurs du genre.",live:"SI TROU — death/black bien sale."},
+
+"Aorlhac":{o:"France (Auvergne) · depuis 2005",fans:"Peste Noire, Darkenhöld, black metal médiéval",album:"L'Esprit des vents (2015)",pitch:"Black metal français à l'imaginaire médiéval et occitan, mélodique et épique. Une identité régionale forte et assumée. Set évocateur pour amateurs de black metal à couleur historique.",live:"SI TROU — black metal médiéval français."},
+
+"Sierra":{o:"Canada · depuis ~2018",fans:"Jinjer, Spiritbox, post-metal moderne",album:"A Story of Anger (2021)",pitch:"Metal moderne canadien mêlant lourdeur, chant clair et passages atmosphériques. Production léchée, sensibilité actuelle. Set accessible et soigné pour amateurs de metal moderne mélodique.",live:"SI TROU — metal moderne propre et efficace."},
+
+"Veins":{o:"France · hardcore",fans:"Converge, Birds in Row, chaotic hardcore",album:"à découvrir sur place",pitch:"Hardcore chaotique français, urgence et dissonance. Set court et explosif, dans l'esprit d'une scène hexagonale en pleine forme. Pour amateurs de hardcore nerveux.",live:"SI TROU — chaos hardcore."},
+
+"Cancer":{o:"UK · depuis 1988",fans:"Death, Bolt Thrower, Massacre",album:"Death Shall Rise (1991)",pitch:"Vétérans du death metal britannique de la première vague, longtemps sous-estimés. Death old-school sans détour, valeur patrimoniale. Set pour les puristes qui connaissent leurs classiques.",live:"SI TROU — death old-school britannique."},
+
+"Basaalt":{o:"France · heavy",fans:"heavy/trad français, Sortilège, Manigance",album:"à découvrir avant le set",pitch:"Heavy metal français traditionnel chanté en français, riffs classiques et refrains à reprendre. Fierté d'une scène heavy hexagonale qui se réveille. Set fédérateur pour amateurs de heavy à l'ancienne.",live:"SI TROU — heavy français à reprendre en chœur."},
+
+"Bruit ≤":{o:"France (Toulouse) · depuis 2016",fans:"Godspeed You! Black Emperor, Mogwai, post-rock",album:"The Machine Is Burning... (2021)",pitch:"Post-rock/post-classique cinématographique aux crescendos déchirants. Pas du metal au sens strict, mais une intensité émotionnelle qui prend aux tripes en live. Une des respirations les plus belles et inattendues de l'affiche.",live:"PRIO si tu aimes le post-rock — moment suspendu et bouleversant."},
+
+"Grave":{o:"Suède · depuis 1986",fans:"Entombed, Dismember, Unleashed",album:"Into the Grave (1991)",pitch:"Pilier du death metal suédois old-school, son Stockholm authentique et caverneux. Riffs de tronçonneuse, groove morbide. Set canonique pour les amateurs du death à l'ancienne.",live:"SI TROU — death suédois pur jus."},
+
+"Ill Niño":{o:"New Jersey, US · depuis 1998",fans:"Soulfly, Sepultura, nu metal latino",album:"Revolution Revolución (2001)",pitch:"Nu metal à percussions latines, énergie groovy et nostalgie 2000s assumée. Set fédérateur et dansant qui rappelle la grande époque du nu metal. Plaisir rétro garanti.",live:"CURIOSITÉ — nostalgie nu metal efficace."},
+
+"Mur":{o:"France · post-hardcore",fans:"post-hardcore français, Birds in Row, As We Draw",album:"à découvrir sur place",pitch:"Post-hardcore français émotionnel et abrasif. Intensité sincère, scène locale vivante. Set court à privilégier pour amateurs de hardcore mélodique et écorché.",live:"SI TROU — post-hardcore sincère."},
+
+"NanowaR of Steel":{o:"Italie · depuis 2003",fans:"Gloryhammer, Alestorm, parodie metal",album:"Italian Folk Metal (2021)",pitch:"Parodie metal italienne hilarante (leur tube \"Valhalleluja\" a cartonné). Power metal épique au second degré total, refrains absurdes et fédérateurs. Set fun à prendre pour ce qu'il est : du grand n'importe quoi jubilatoire.",live:"CURIOSITÉ — gros délire collectif, à voir le sourire aux lèvres."},
+
+"The Casualties":{o:"New York, US · depuis 1990",fans:"The Exploited, GBH, Discharge",album:"For the Punx (1997)",pitch:"Street punk new-yorkais à crêtes et refrains à scander. Trente ans d'énergie punk brute et anti-système. Set bordélique et fédérateur pour amateurs de punk old-school.",live:"SI TROU — punk à crête, ambiance pogo."},
+
+"Frog Leap":{o:"Norvège · depuis 2014",fans:"reprises metal, Leo Moracchioli, YouTube metal covers",album:"connu pour ses reprises",pitch:"Leo Moracchioli, star YouTube des reprises metal de tubes pop. Concept fun et accessible : entendre des hits transformés en metal, en live et avec autodérision. Set léger et souriant pour toute la famille metal.",live:"CURIOSITÉ — fun et accessible, sourire garanti."},
+
+"Steve'n'Seagulls":{o:"Finlande · depuis 2011",fans:"reprises bluegrass, Hayseed Dixie, folk metal humoristique",album:"Farm Machine (2015)",pitch:"Reprises de classiques metal en version bluegrass/folk finlandais, banjo et bonne humeur. Concept improbable et hyper attachant en live. Set rafraîchissant qui détend toute une foule.",live:"CURIOSITÉ — pause bluegrass jubilatoire."},
+
+"Ashen":{o:"Australie · depuis ~2018",fans:"Psycroptic, The Black Dahlia Murder, death moderne",album:"Ríastrad (2023)",pitch:"Death metal australien moderne, technique et féroce, en pleine ascension. Production tranchante, intensité scénique. Set pour amateurs de death actuel qui veulent découvrir la relève.",live:"SI TROU — death moderne prometteur."},
+
+"Rectal Smegma":{o:"Pays-Bas · depuis 2005",fans:"Goregrind, Last Days of Humanity, Cliteater",album:"set goregrind festif",pitch:"Goregrind néerlandais à l'humour scato-festif assumé. Brutalité expéditive et second degré crasseux. Set défouloir court pour amateurs d'extrême qui ne se prennent pas au sérieux.",live:"SI TROU — grind festif et pas sérieux."},
+
+"Les 3 Fromages":{o:"France · depuis 2008",fans:"Ultra Vomit, Gûms, metal humoristique français",album:"connu pour ses parodies",pitch:"Parodie musicale française qui pastiche metal et variété avec un humour potache. Plus comédie que concert, mais redoutablement efficace pour faire rire une foule de festivaliers. Set détente garantie.",live:"CURIOSITÉ — délire franchouillard, marrant en groupe."},
+
+"Jetsex":{o:"France · punk",fans:"punk français, garage, Frustration",album:"à découvrir sur place",pitch:"Punk/garage français énergique et sans prétention. Set court et nerveux, dans l'esprit DIY. Pour amateurs de punk brut et de sueur.",live:"SI TROU — punk énergique."},
+
+"Monde de Merde":{o:"France · punk",fans:"punk français, Tagada Jones, Ludwig von 88",album:"à découvrir sur place",pitch:"Punk français contestataire au nom programmatique, énergie et refrains à gueuler. Set fédérateur et défoulant pour amateurs de punk hexagonal engagé.",live:"SI TROU — punk français à scander."},
+
+"Orden Ogan":{o:"Allemagne · depuis 1996",fans:"Blind Guardian, Sabaton, Powerwolf",album:"Ravenhead (2015)",pitch:"Power metal allemand épique et choral, refrains hymniques et production massive. Mécanique festivalière imparable pour amateurs de power metal à grand spectacle. Set fédérateur et galvanisant.",live:"CURIOSITÉ — power metal épique, refrains à reprendre."},
+
+"Slift":{o:"France (Toulouse) · depuis 2016",fans:"Hawkwind, King Gizzard, Oh Sees",album:"Ummon (2020)",pitch:"Psych/space rock français en orbite, jams cosmiques et déferlantes fuzz qui montent en transe. Live réputé explosif et hypnotique. Une des découvertes les plus excitantes pour qui aime le rock psychédélique massif.",live:"PRIO si tu aimes le psych — live ascensionnel et puissant."},
+
+"Svinkels Family & Friends":{o:"France · depuis 1997",fans:"Svinkels, rap alternatif français, crossover",album:"Bons pour l'asile (2003)",pitch:"Rap alternatif français déjanté et festif, en formule élargie pour le festival. Croisement rap/rock bordélique et fun, esprit fête. Set crossover atypique pour une respiration hip-hop sur l'affiche.",live:"CURIOSITÉ — crossover festif, changement de registre bienvenu."},
+
+"Shady Fat Kats":{o:"France · rock",fans:"rock'n'roll, garage, boogie",album:"à découvrir sur place",pitch:"Rock'n'roll/garage français à l'ancienne, énergie scénique et groove. Set chaleureux pour amateurs de vrai rock qui transpire. Bonne pioche pour bouger sans se prendre la tête.",live:"SI TROU — rock'n'roll efficace."}
+
+});
+
+/* ===================== DIMANCHE 16 ===================== */
+Object.assign(FICHES, {
+
+"Judas Priest":{o:"Birmingham, UK · depuis 1969",fans:"Iron Maiden, Saxon, Accept",album:"British Steel (1980)",pitch:"LE dieu vivant de l'affiche. Cinquante ans de heavy metal, le costume de cuir et clous qu'ils ont inventé, et la voix d'opéra de Rob Halford toujours stratosphérique. Painkiller, Breaking the Law, Living After Midnight : un récital de classiques absolus. Sommet incontestable du week-end.",live:"PRIO ABSOLUE — légende fondatrice, à ne rater sous aucun prétexte."},
+
+"Airbourne":{o:"Australie · depuis 2003",fans:"AC/DC, Rose Tattoo, Krokus",album:"Runnin' Wild (2007)",pitch:"Les héritiers les plus sincères d'AC/DC : hard rock bière-à-la-main, riffs simples et imparables, et un Joel O'Keeffe qui escalade les enceintes. Aucune subtilité, juste du rock'n'roll pur et jouissif. Une des plus grosses machines à fun de l'affiche.",live:"PRIO — show débridé, hymnes repris en chœur, garanti sans temps mort."},
+
+"Arch Enemy":{o:"Suède · depuis 1995",fans:"At the Gates, In Flames, Carcass",album:"Wages of Sin (2001)",pitch:"Référence mondiale du melodic death, menée par la frontwoman Alissa White-Gluz, growl féroce et présence magnétique. Leads jumeaux virtuoses de Michael Amott, refrains tranchants. Set massif et galvanisant pour une grande scène.",live:"PRIO — show melodeath de classe internationale."},
+
+"Deafheaven":{o:"San Francisco, US · depuis 2010",fans:"Alcest, Slowdive, Mogwai",album:"Sunbather (2013)",pitch:"Les Américains qui ont fait exploser le blackgaze hors de la niche. Murs de guitares lumineux, blast beats noyés de shoegaze, beauté et violence mêlées. Live d'une intensité rare. Un sommet possible pour qui aime le metal qui transcende les genres.",live:"PRIO — déferlante émotionnelle, un des plus beaux live actuels."},
+
+"Kim Dracula":{o:"Australie · depuis 2020",fans:"Spiritbox, Poppy, hyperpop-metal",album:"A Gradual Decline in Morale (2023)",pitch:"OVNI génial né sur internet : mélange déroutant de metalcore, hyperpop, rap et théâtralité. Imprévisible, clivant, mais d'une créativité folle. Un des noms les plus discutés de la nouvelle scène — set surprise garanti.",live:"PRIO si tu es curieux — phénomène inclassable à voir pour comprendre."},
+
+"Cryptopsy":{o:"Montréal, Canada · depuis 1988",fans:"Suffocation, Dying Fetus, Origin",album:"None So Vile (1996)",pitch:"Monument du death metal technique et brutal. None So Vile est un classique absolu du genre, et Flo Mounier reste un des batteurs les plus impressionnants du metal extrême. Set d'une intensité chirurgicale pour connaisseurs.",live:"PRIO si tu aimes le tech-death — référence indiscutable."},
+
+"Voivod":{o:"Québec, Canada · depuis 1982",fans:"Coroner, Watchtower, King Crimson (versant prog)",album:"Killing Technology (1987)",pitch:"Légende du prog/thrash, inclassables depuis quarante ans : dissonances, science-fiction, riffs tordus uniques au monde. Influence immense et culte. Set singulier et cérébral pour amateurs de metal qui pense.",live:"PRIO si tu aimes le prog-thrash — institution unique en son genre."},
+
+"Fit For An Autopsy":{o:"New Jersey, US · depuis 2008",fans:"Thy Art Is Murder, The Acacia Strain, Gojira (côté lourd)",album:"The Great Collapse (2017)",pitch:"Deathcore intelligent et atmosphérique, plus profond que la moyenne du genre, avec un vrai propos écologique et social. Lourdeur massive et passages mélodiques. Set puissant pour amateurs de deathcore moderne et ambitieux.",live:"PRIO si tu aimes le deathcore — un des meilleurs du genre actuel."},
+
+"Vader":{o:"Pologne · depuis 1983",fans:"Morbid Angel, Behemoth, Krisiun",album:"De Profundis (1995)",pitch:"Maîtres polonais du death metal, machine de guerre véloce et martiale depuis quarante ans. Riffs implacables, batterie mitraillette. Valeur sûre absolue du death extrême européen. Set carré et dévastateur.",live:"CURIOSITÉ — death polonais canonique, exécution sans faille."},
+
+"Sacred Reich":{o:"Phoenix, US · depuis 1985",fans:"Testament, Sepultura, Anthrax",album:"The American Way (1990)",pitch:"Thrash US engagé de la grande époque, groove et conscience politique. Reformés et toujours pertinents. Set énergique et fédérateur pour amateurs de thrash classique avec du fond.",live:"CURIOSITÉ — thrash old-school avec du propos."},
+
+"Signs of the Swarm":{o:"Pittsburgh, US · depuis 2015",fans:"Lorna Shore, Shadow of Intent, deathcore extrême",album:"Amongst the Low & Empty (2022)",pitch:"Deathcore extrême et technique, growls abyssaux et brutalité moderne. Montée en puissance rapide dans la scène. Set démolisseur pour amateurs de deathcore actuel le plus lourd.",live:"SI TROU — deathcore moderne brutal."},
+
+"Heretoir":{o:"Allemagne · depuis 2006",fans:"Alcest, Lantlôs, Agalloch",album:"The Circle (2017)",pitch:"Post-black/blackgaze allemand atmosphérique et mélancolique, textures vaporeuses et émotion à fleur de peau. Set immersif et introspectif pour amateurs de metal atmosphérique.",live:"SI TROU — post-black émotionnel."},
+
+"Witch Club Satan":{o:"Norvège · depuis ~2019",fans:"Myrkur, Gaerea, black metal performatif",album:"Witch Club Satan (2024)",pitch:"Trio féminin de black metal norvégien à la dimension performative et féministe forte (rituels scéniques, mise en scène théâtrale). Intense et provocateur. Set marquant pour qui aime le black metal qui bouscule.",live:"CURIOSITÉ — black metal performatif et clivant, à voir pour le geste."},
+
+"Heavy//Hitter":{o:"US · hardcore",fans:"Knocked Loose, hardcore moderne, beatdown",album:"à découvrir sur place",pitch:"Hardcore moderne américain, breakdowns lourds et énergie de pit. Set frontal pour amateurs de hardcore qui veulent du contact. Court et physique.",live:"SI TROU — hardcore moderne pour le pit."},
+
+"Jools":{o:"France · metal",fans:"scène metal française émergente",album:"à découvrir avant le set",pitch:"Jeune projet metal français à défricher — peu documenté, donc carte découverte pour les curieux. À écouter en amont pour se faire un avis. L'occasion de soutenir la scène locale qui monte.",live:"SI TROU — pari découverte."},
+
+"Monkeys On Mars":{o:"France · groove/fusion",fans:"groove metal, fusion, Mass Hysteria (côté groove)",album:"à découvrir sur place",pitch:"Groove/fusion metal français énergique et dansant. Set entraînant pour amateurs de metal qui bouge. Bonne pioche pour se défouler en gardant le rythme.",live:"SI TROU — groove efficace."},
+
+"Internal Bleeding":{o:"New York, US · depuis 1991",fans:"Suffocation, Dying Fetus, Pyrexia",album:"Voracious Contempt (1995)",pitch:"Pionniers du brutal death/slam new-yorkais, son caverneux et groovy. Influence reconnue sur tout un pan du death extrême. Set pour amateurs de slam et de death brutal old-school.",live:"SI TROU — brutal death historique."},
+
+"Castle Rat":{o:"US · depuis ~2021",fans:"Sleep, Witchcraft, doom théâtral",album:"Into the Realm (2024)",pitch:"Doom metal théâtral et conceptuel, esthétique médiévale-fantastique très soignée (personnages, costumes). Riffs lourds et mise en scène immersive. Set singulier qui sort du lot visuellement.",live:"CURIOSITÉ — doom costumé et immersif, original."},
+
+"Holy Mother":{o:"New York, US · depuis 1993",fans:"Armored Saint, Metal Church, heavy US",album:"Toxic Rain (2003)",pitch:"Heavy/power metal US robuste et mélodique, voix puissante et riffs classiques. Set old-school pour amateurs de heavy traditionnel américain. Valeur sûre sans surprise.",live:"SI TROU — heavy US fiable."},
+
+"John Cxnnor":{o:"France · indus/metal",fans:"Author & Punisher, indus extrême, Perturbator (côté sombre)",album:"à découvrir avant le set",pitch:"Projet indus/metal français sombre et martial, esthétique cyber-dystopique. Encore confidentiel mais au potentiel scénique fort. Set pour amateurs d'indus extrême et d'ambiances froides.",live:"SI TROU — indus sombre prometteur."},
+
+"Modder":{o:"Belgique · depuis ~2016",fans:"groove/indus, Gojira (côté massif), Textures",album:"Stügnax (2021)",pitch:"Groove/indus metal belge massif et moderne, riffs lourds et production léchée. Set robuste pour amateurs de metal groovy et actuel. Belle pioche du plat pays.",live:"SI TROU — groove/indus solide."},
+
+"Pain Magazine":{o:"France · hardcore",fans:"hardcore français, metallic hardcore",album:"à découvrir sur place",pitch:"Hardcore français frontal et metallique, énergie de pit. Set court à privilégier pour se défouler. Scène locale brute et sincère.",live:"SI TROU — hardcore pour le pit."},
+
+"Red Sun Atacama":{o:"Chili · depuis ~2014",fans:"Kyuss, Stoned Jesus, stoner/desert rock",album:"à découvrir avant le set",pitch:"Stoner/desert rock chilien, gros riffs fuzz et ambiances arides. Une couleur sud-américaine rare sur l'affiche. Set groovy et planant pour amateurs de stoner.",live:"SI TROU — stoner dépaysant."},
+
+"Shaârghot":{o:"France · depuis 2016",fans:"The Prodigy (côté metal), indus, Mishka",album:"Volume I",pitch:"Indus/dark électro français à l'esthétique post-apocalyptique masquée très théâtrale. Croisement metal/électro/cyberpunk pensé pour le show. Set visuel et immersif, taillé pour une scène de nuit.",live:"CURIOSITÉ — show indus-cyberpunk spectaculaire."},
+
+"Warning":{o:"UK · 1994-2009, retours",fans:"My Dying Bride, Pallbearer, doom émotionnel",album:"Watching from a Distance (2006)",pitch:"Doom metal britannique d'une mélancolie déchirante — Watching from a Distance est un sommet du doom émotionnel. Lent, grave, bouleversant. Set exigeant et profond pour amateurs de doom qui prend aux tripes.",live:"CURIOSITÉ — doom émotionnel culte, intense si on accroche."},
+
+"Wormsand":{o:"France · sludge",fans:"sludge/post-metal, Cult of Luna, Amenra (côté lourd)",album:"à découvrir avant le set",pitch:"Sludge/post-metal français lourd et atmosphérique. Encore confidentiel, donc bonne pioche pour les chercheurs de pépites. Set immersif et écrasant pour amateurs du genre.",live:"SI TROU — sludge atmosphérique à découvrir."},
+
+"Coltaine":{o:"Allemagne · folk/atmosphérique",fans:"Saor, Wolves in the Throne Room, folk atmosphérique",album:"Better Days (2020)",pitch:"Folk/black atmosphérique allemand aux ambiances nature et mélancoliques, mélodies douces et amples. Set apaisant et évocateur pour amateurs d'atmosphérique. Une respiration boisée.",live:"SI TROU — atmosphérique contemplatif."},
+
+"Killers":{o:"France · depuis 1980",fans:"heavy français, Trust, Sortilège",album:"Résistances (1989)",pitch:"Vétérans du heavy metal français, fondés par Bruno Dolheguy, plus de quarante ans de carrière. Heavy chanté en français, énergie de scène intacte. Set patrimonial pour amateurs de heavy hexagonal historique.",live:"CURIOSITÉ — pan d'histoire du metal français."},
+
+"Les Hommes Crabes":{o:"France · punk",fans:"punk français déjanté, Ludwig von 88, Bérurier Noir",album:"à découvrir sur place",pitch:"Punk français loufoque et théâtral à l'univers absurde (thématique crabe assumée). Set festif et décalé pour amateurs de punk qui ne se prend pas au sérieux. Délire garanti.",live:"SI TROU — punk absurde et fun."},
+
+"Eyes":{o:"Danemark · depuis ~2018",fans:"hardcore chaotique, Nails, noise-hardcore",album:"Underperformer (2021)",pitch:"Hardcore danois chaotique, abrasif et nerveux, à l'énergie noise. Set court et frontal pour amateurs de hardcore extrême et dissonant. Décharge brute.",live:"SI TROU — hardcore chaotique."}
+
+});
+
 const LINEUP={
   "Jeudi 13":[
     {n:"Godsmack",g:"Alt metal · US",head:true,w:1},{n:"Primus",g:"Funk metal · US",head:true,w:1},
@@ -435,7 +735,7 @@ function renderDay(day){
     html+=`<div class="band${band.head?' head':''}${hide?' hidden':''}">
       <div class="band-top">
         <div class="b-info">
-          <div class="b-name">${band.n}${band.head?'<span class="star">★</span>':''}</div>
+          <div class="b-name" data-fiche="${band.n}"><span>${band.n}</span>${band.head?'<span class="star">★</span>':''}<svg class="info-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
           <div class="b-meta">${band.g}<span class="wk">sem. ${band.w}</span></div>
         </div>
         <button class="iconbtn spot" data-spot="${band.n}" title="Écouter sur Spotify">
@@ -462,7 +762,66 @@ function renderDay(day){
     renderDay(curView);updateStats();queuePush();
   });
   content.querySelectorAll(".spot").forEach(btn=>btn.onclick=()=>window.open("https://open.spotify.com/search/"+encodeURIComponent(btn.dataset.spot),"_blank"));
+  content.querySelectorAll(".b-name").forEach(el=>el.onclick=()=>openModal(el.dataset.fiche));
 }
+
+/* ============ MODALE FICHE ============ */
+function verdictClass(v){
+  if(!v)return "trou";
+  const u=v.toUpperCase();
+  if(u.startsWith("PRIO"))return "prio";
+  if(u.startsWith("CURIOS"))return "curio";
+  return "trou";
+}
+function openModal(name){
+  const f=FICHES[name];
+  // retrouver le genre/jour depuis le line-up
+  let band=null;
+  for(const d of DAYS){const b=LINEUP[d].find(x=>x.n===name);if(b){band=b;break}}
+  const G=me().grades, grade=G[name]||"";
+  const card=$("#modal-card");
+  if(!f){
+    card.innerHTML=`<div class="modal-grip"></div><div class="modal-head"><div class="mh-top"><h3>${name}</h3><button class="modal-close" id="m-close">×</button></div></div><div class="modal-body"><p class="fiche-val">Fiche à venir pour ce groupe. En attendant, écoute-les sur Spotify pour te faire un avis.</p></div><div class="modal-actions"><a class="modal-spot" href="https://open.spotify.com/search/${encodeURIComponent(name)}" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.6 14.4a.6.6 0 01-.86.2c-2.35-1.44-5.3-1.76-8.8-.96a.62.62 0 11-.28-1.2c3.83-.88 7.1-.5 9.74 1.1.3.18.4.56.2.86zm1.23-2.74a.78.78 0 01-1.07.26c-2.69-1.65-6.79-2.13-9.97-1.17a.78.78 0 11-.45-1.49c3.63-1.1 8.15-.56 11.24 1.33.36.22.48.7.25 1.07zm.1-2.85C14.84 8.95 9.6 8.76 6.6 9.67a.93.93 0 11-.54-1.78c3.44-1.04 9.23-.84 12.87 1.32a.93.93 0 11-.95 1.6z"/></svg>Écouter sur Spotify</a></div>`;
+  } else {
+    card.innerHTML=`
+      <div class="modal-grip"></div>
+      <div class="modal-head">
+        <div class="mh-top">
+          <h3>${name}${band&&band.head?' <span class="star" style="color:var(--ambre)">★</span>':''}</h3>
+          <button class="modal-close" id="m-close">×</button>
+        </div>
+        <div class="modal-origin">${f.o}${band?' · '+band.g:''}</div>
+      </div>
+      <div class="modal-body">
+        <div class="fiche-row"><div class="fiche-lbl">Le pitch</div><div class="fiche-pitch">${f.pitch}</div></div>
+        ${f.fans?`<div class="fiche-row"><div class="fiche-lbl">Pour les fans de</div><div class="fiche-val">${f.fans}</div></div>`:""}
+        ${f.album?`<div class="fiche-row"><div class="fiche-lbl">À écouter en premier</div><div class="fiche-val fiche-album">${f.album}</div></div>`:""}
+        <div class="fiche-row"><div class="fiche-lbl">Verdict festival</div><div class="verdict ${verdictClass(f.live)}">${verdictClass(f.live)==="prio"?"🔥":verdictClass(f.live)==="curio"?"👀":"🕳️"} ${f.live}</div></div>
+      </div>
+      <div class="modal-grades">
+        <span class="mg-lbl">Noter</span>
+        ${["A+","A","B","C","X"].map(gr=>`<button class="mg${grade===gr?' sel':''}" data-mg="${gr}" data-band="${name}">${gr}</button>`).join("")}
+      </div>
+      <div class="modal-actions">
+        <a class="modal-spot" href="https://open.spotify.com/search/${encodeURIComponent(name)}" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.6 14.4a.6.6 0 01-.86.2c-2.35-1.44-5.3-1.76-8.8-.96a.62.62 0 11-.28-1.2c3.83-.88 7.1-.5 9.74 1.1.3.18.4.56.2.86zm1.23-2.74a.78.78 0 01-1.07.26c-2.69-1.65-6.79-2.13-9.97-1.17a.78.78 0 11-.45-1.49c3.63-1.1 8.15-.56 11.24 1.33.36.22.48.7.25 1.07zm.1-2.85C14.84 8.95 9.6 8.76 6.6 9.67a.93.93 0 11-.54-1.78c3.44-1.04 9.23-.84 12.87 1.32a.93.93 0 11-.95 1.6z"/></svg>
+          Écouter sur Spotify
+        </a>
+      </div>`;
+  }
+  $("#modal").classList.add("show");
+  document.body.style.overflow="hidden";
+  $("#m-close").onclick=closeModal;
+  card.querySelectorAll(".mg").forEach(btn=>btn.onclick=()=>{
+    const b=btn.dataset.band,gr=btn.dataset.mg,G=me().grades;
+    if(G[b]===gr)delete G[b];else G[b]=gr;
+    card.querySelectorAll(".mg").forEach(x=>x.classList.toggle("sel",x.dataset.mg===G[b]));
+    if(curView!=="run")renderDay(curView);updateStats();queuePush();
+  });
+}
+function closeModal(){$("#modal").classList.remove("show");document.body.style.overflow=""}
+$("#modal-bg").onclick=closeModal;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
 
 function renderRunning(){
   const G=me().grades;
