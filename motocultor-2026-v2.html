@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motocultor 2026 — Running partagé</title>
+<style>
+  :root{
+    /* fond clair chaleureux */
+    --bg:#faf6f0;
+    --surface:#ffffff;
+    --surface-2:#f3ece2;
+    --line:#e7ddd0;
+    --ink:#241c16;
+    --ink-soft:#6b5d50;
+    --ink-faint:#9a8c7d;
+    /* accents (deep-tone Steph, mais vifs) */
+    --rouille:#c8502d;
+    --rouille-soft:#fbe9e2;
+    --ambre:#e0962f;
+    --ambre-soft:#fdf0db;
+    --olive:#6f7d3f;
+    --olive-soft:#eef1e0;
+    --navy:#2f4858;
+    /* grades */
+    --aplus:#c8502d;--aplus-bg:#fbe9e2;
+    --a:#e0962f;--a-bg:#fdf0db;
+    --b:#6f7d3f;--b-bg:#eef1e0;
+    --c:#9a8c7d;--c-bg:#f3ece2;
+    --x:#b9aa9a;--x-bg:#f0e9e0;
+    --shadow:0 1px 2px rgba(60,40,20,.05),0 4px 16px rgba(60,40,20,.06);
+    --shadow-lg:0 8px 40px rgba(60,40,20,.14);
+    --r:14px;--r-sm:9px;
+  }
+  /* thème clair forcé, quel que soit le réglage système */
+  html{color-scheme:light}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:780px;margin:0 auto;padding:0 16px}
+  button{font-family:inherit}
+
+  /* ============ GATE ============ */
+  #gate{position:fixed;inset:0;background:rgba(36,28,22,.45);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+  #gate.hidden{display:none}
+  .gate-card{max-width:440px;width:100%;background:var(--surface);border-radius:var(--r);padding:30px;box-shadow:var(--shadow-lg);animation:pop .35s cubic-bezier(.2,.8,.2,1)}
+  @keyframes pop{from{transform:translateY(14px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+  .gate-card .kicker{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--rouille);background:var(--rouille-soft);padding:5px 11px;border-radius:30px;margin-bottom:16px}
+  .gate-card h2{font-size:23px;font-weight:800;letter-spacing:-.02em;margin-bottom:7px}
+  .gate-card p{color:var(--ink-soft);font-size:14px;margin-bottom:8px}
+  .gate-card label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:16px 0 6px}
+  .gate-card input{width:100%;background:var(--surface-2);border:1.5px solid transparent;color:var(--ink);padding:12px 14px;font-size:15px;border-radius:var(--r-sm);transition:border-color .15s,background .15s}
+  .gate-card input:focus{outline:none;border-color:var(--rouille);background:var(--surface)}
+  .gate-btn{width:100%;margin-top:22px;background:var(--rouille);color:#fff;border:none;padding:14px;font-weight:700;font-size:15px;cursor:pointer;border-radius:var(--r-sm);transition:transform .12s,filter .15s}
+  .gate-btn:hover{filter:brightness(1.06)}.gate-btn:active{transform:scale(.985)}
+  .gate-help{margin-top:18px;font-size:13px;color:var(--ink-soft)}
+  .gate-help summary{cursor:pointer;color:var(--rouille);font-weight:600;font-size:13px;list-style:none;display:flex;align-items:center;gap:6px}
+  .gate-help summary::before{content:"›";font-size:18px;transition:transform .2s;display:inline-block}
+  .gate-help[open] summary::before{transform:rotate(90deg)}
+  .gate-help ol{margin:12px 0 0 4px;padding-left:18px}
+  .gate-help li{margin-bottom:7px;line-height:1.5}
+  .gate-help code{background:var(--surface-2);padding:2px 6px;border-radius:5px;font-size:12px;color:var(--rouille);font-family:ui-monospace,monospace}
+  .gate-err{color:var(--rouille);font-size:13.5px;margin-top:12px;min-height:18px;font-weight:500}
+
+  /* ============ HERO ============ */
+  header.hero{padding:26px 0 18px}
+  .brandrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--rouille),var(--ambre));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--shadow)}
+  .logo svg{width:24px;height:24px}
+  .brandtxt h1{font-size:21px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .brandtxt .sub{font-size:12.5px;color:var(--ink-faint);font-weight:500;margin-top:1px}
+  .whoami{margin-left:auto;display:flex;align-items:center;gap:9px;background:var(--surface);padding:7px 12px;border-radius:30px;box-shadow:var(--shadow);font-size:13px}
+  .whoami .av{width:24px;height:24px;border-radius:50%;background:var(--olive-soft);color:var(--olive);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+  .whoami b{font-weight:600}
+  .whoami .chg{color:var(--ink-faint);cursor:pointer;font-size:12px;border:none;background:none;padding:0 2px}
+  .whoami .chg:hover{color:var(--rouille)}
+  .syncdot{width:7px;height:7px;border-radius:50%;background:var(--olive);transition:background .2s}
+  .syncdot.busy{background:var(--ambre);animation:blink 1s infinite}
+  .syncdot.err{background:var(--rouille)}
+  @keyframes blink{50%{opacity:.25}}
+
+  /* stat cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+  .stat{background:var(--surface);border-radius:var(--r);padding:14px 14px;box-shadow:var(--shadow)}
+  .stat .num{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .stat .lab{font-size:11px;color:var(--ink-faint);font-weight:600;margin-top:4px}
+  #st-aplus .num{color:var(--aplus)}#st-a .num{color:var(--a)}#st-done .num{color:var(--olive)}
+  @media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+  /* ============ NAV (tabs) ============ */
+  .navbar{position:sticky;top:0;z-index:30;background:var(--bg);padding:12px 0 6px;margin-top:8px}
+  .navbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+  .tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:6px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{white-space:nowrap;font-size:13.5px;font-weight:600;color:var(--ink-soft);background:var(--surface);border:1px solid var(--line);padding:9px 15px;cursor:pointer;border-radius:30px;transition:.15s;flex-shrink:0}
+  .tab:hover{border-color:var(--rouille);color:var(--ink)}
+  .tab.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .tab.run{background:var(--rouille);color:#fff;border-color:var(--rouille)}
+  .tab.run.active{background:var(--rouille);box-shadow:0 0 0 3px var(--rouille-soft)}
+
+  .toolrow{display:flex;gap:8px;align-items:center;margin:14px 0 4px}
+  .filtbtn{font-size:12.5px;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line);padding:7px 13px;cursor:pointer;border-radius:30px;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .filtbtn:hover{border-color:var(--ink-faint)}
+  .filtbtn.on{background:var(--ambre-soft);color:var(--ambre);border-color:var(--ambre)}
+  .filtbtn .ck{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;display:inline-flex;align-items:center;justify-content:center;font-size:10px}
+  .filtbtn.on .ck::after{content:"✓"}
+  .search{margin-left:auto;flex:1;max-width:200px;position:relative}
+  .search input{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:30px;padding:8px 14px 8px 32px;font-size:13.5px;color:var(--ink)}
+  .search input:focus{outline:none;border-color:var(--rouille)}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--ink-faint)}
+
+  /* progress */
+  .prog-wrap{display:flex;align-items:center;gap:12px;margin:14px 0 4px}
+  .prog{flex:1;height:8px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+  .prog>div{height:100%;background:linear-gradient(90deg,var(--rouille),var(--ambre));width:0;border-radius:6px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .prog-lab{font-size:12px;font-weight:600;color:var(--ink-faint);white-space:nowrap}
+
+  /* ============ DAY ============ */
+  .day-h{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+  .day-h .badge{font-size:12px;font-weight:700;color:var(--rouille);background:var(--rouille-soft);padding:4px 10px;border-radius:8px}
+  .day-h h2{font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .day-h .count{margin-left:auto;font-size:12.5px;color:var(--ink-faint);font-weight:500}
+
+  .card-list{display:flex;flex-direction:column;gap:8px}
+  .band{background:var(--surface);border-radius:var(--r);padding:13px 14px;box-shadow:var(--shadow);transition:box-shadow .15s,transform .1s}
+  .band:hover{box-shadow:var(--shadow-lg)}
+  .band.hidden{display:none}
+  .band.head{border-left:3px solid var(--ambre)}
+  .band-top{display:flex;align-items:center;gap:11px}
+  .b-info{flex:1;min-width:0}
+  .b-name{font-size:16px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:6px}
+  .b-name .star{color:var(--ambre);font-size:13px}
+  .b-meta{font-size:12px;color:var(--ink-faint);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .b-meta .wk{background:var(--surface-2);padding:1px 7px;border-radius:20px;font-weight:600;font-size:11px}
+  .iconbtn{width:34px;height:34px;flex-shrink:0;border-radius:9px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;color:var(--ink-soft)}
+  .iconbtn:hover{border-color:var(--ink-faint);color:var(--ink)}
+  .iconbtn svg{width:16px;height:16px}
+  .iconbtn.listen.done{background:var(--olive);border-color:var(--olive);color:#fff}
+  .iconbtn.spot:hover{color:#1DB954;border-color:#1DB954}
+
+  .grades{display:flex;gap:5px;margin-top:11px}
+  .g{flex:1;height:38px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:700;cursor:pointer;border-radius:9px;transition:.13s;display:flex;align-items:center;justify-content:center}
+  .g:hover{border-color:var(--ink-faint);transform:translateY(-1px)}
+  .g:active{transform:scale(.95)}
+  .g[data-g="A+"].sel{background:var(--aplus);border-color:var(--aplus);color:#fff}
+  .g[data-g="A"].sel{background:var(--a);border-color:var(--a);color:#fff}
+  .g[data-g="B"].sel{background:var(--b);border-color:var(--b);color:#fff}
+  .g[data-g="C"].sel{background:var(--c);border-color:var(--c);color:#fff}
+  .g[data-g="X"].sel{background:var(--x);border-color:var(--x);color:#fff}
+  .g.sel{animation:gpop .25s}
+  @keyframes gpop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+  .others{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+  .others .lbl{font-size:11px;color:var(--ink-faint);font-weight:600;align-self:center}
+  .chip{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--surface-2);color:var(--ink-soft);display:inline-flex;gap:5px;align-items:center}
+  .chip b{font-weight:700}
+  .chip.cg-aplus{background:var(--aplus-bg)}.chip.cg-aplus b{color:var(--aplus)}
+  .chip.cg-a{background:var(--a-bg)}.chip.cg-a b{color:var(--a)}
+  .chip.cg-b{background:var(--b-bg)}.chip.cg-b b{color:var(--b)}
+  .chip.cg-c,.chip.cg-x{opacity:.65}
+
+  /* ============ RUNNING ============ */
+  #running{display:none}#running.show{display:block}
+  .run-hero{background:linear-gradient(135deg,var(--rouille),var(--ambre));color:#fff;border-radius:var(--r);padding:20px 22px;margin:18px 0;box-shadow:var(--shadow)}
+  .run-hero h2{font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .run-hero p{font-size:13.5px;opacity:.92;margin-top:4px}
+  .run-tip{display:flex;gap:10px;background:var(--ambre-soft);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--ink);line-height:1.5}
+  .run-tip .ic{flex-shrink:0;font-size:16px}
+  .run-day{margin-bottom:22px}
+  .run-day h3{font-size:17px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .run-day .dcount{font-size:12px;color:var(--ink-faint);font-weight:600}
+  .clash{font-size:12.5px;color:var(--aplus);background:var(--aplus-bg);padding:8px 12px;border-radius:var(--r-sm);margin:8px 0;font-weight:500}
+  .run-line{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:7px;box-shadow:var(--shadow)}
+  .run-badge{font-size:12px;font-weight:800;width:36px;text-align:center;padding:4px 0;border-radius:7px;flex-shrink:0;color:#fff}
+  .rb-aplus{background:var(--aplus)}.rb-a{background:var(--a)}.rb-b{background:var(--b)}
+  .run-line .rn{flex:1;font-weight:700;font-size:15px}
+  .run-line .rmeta{font-size:11.5px;color:var(--ink-faint)}
+  .run-others{font-size:11px;color:var(--olive);font-weight:600;margin-top:2px}
+  .run-empty{color:var(--ink-faint);font-size:13.5px;padding:12px 14px;background:var(--surface-2);border-radius:var(--r-sm)}
+
+  footer{margin-top:36px;padding:20px 0 50px;border-top:1px solid var(--line);display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--ink-faint)}
+  .lnk{color:var(--rouille);cursor:pointer;font-weight:600;border:none;background:none;font-size:12.5px}
+  .lnk:hover{text-decoration:underline}
+
+  /* toast */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:30px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.25s;z-index:50}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="kicker">⚡ Motocultor 2026</div>
+    <h2>On se connecte</h2>
+    <p>Ton prénom, et la clé du seau partagé. Tout le monde met la même clé → mêmes notes, sur tous les appareils.</p>
+    <label>Ton prénom</label>
+    <input id="in-name" placeholder="Steph" autocomplete="off">
+    <label>Bin ID (JSONBin)</label>
+    <input id="in-bin" placeholder="6a1b2c3d4e5f…" autocomplete="off">
+    <label>Master Key (X-Master-Key)</label>
+    <input id="in-key" placeholder="$2a$10$…" autocomplete="off">
+    <div class="gate-err" id="gate-err"></div>
+    <button class="gate-btn" id="gate-go">Entrer</button>
+    <details class="gate-help">
+      <summary>Créer le seau — 2 min, gratuit, sans CB</summary>
+      <ol>
+        <li>Sur <code>jsonbin.io</code>, crée un compte gratuit.</li>
+        <li><b>Create Bin</b>, colle <code>{}</code>, sauve. Le <b>Bin ID</b> est dans l'URL.</li>
+        <li>Menu <b>API Keys</b> → copie ta <b>Master Key</b> (<code>$2a$…</code>).</li>
+        <li>Donne le Bin ID + la Master Key à Marine & aux potes pour qu'ils notent dans le même seau.</li>
+      </ol>
+    </details>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </div>
+      <div class="brandtxt">
+        <h1>Running Motocultor</h1>
+        <div class="sub">Carhaix · 13–16 août 2026 · notation à plusieurs</div>
+      </div>
+      <div class="whoami">
+        <span class="av" id="me-av">?</span>
+        <b id="me-name">—</b>
+        <span class="syncdot" id="syncdot"></span>
+        <button class="chg" id="me-change">changer</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat" id="st-total"><div class="num">0</div><div class="lab">Groupes</div></div>
+      <div class="stat" id="st-aplus"><div class="num">0</div><div class="lab">Tes A+</div></div>
+      <div class="stat" id="st-a"><div class="num">0</div><div class="lab">Tes A</div></div>
+      <div class="stat" id="st-done"><div class="num">0</div><div class="lab">Écoutés</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="navbar">
+  <div class="wrap"><div class="tabs" id="tabs"></div></div>
+</div>
+
+<div class="wrap">
+  <div class="toolrow" id="toolrow">
+    <button class="filtbtn" id="f-todo"><span class="ck"></span>À écouter</button>
+    <button class="filtbtn" id="f-noted"><span class="ck"></span>Non notés</button>
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchbox" placeholder="Filtrer…">
+    </div>
+  </div>
+  <div class="prog-wrap" id="progwrap">
+    <div class="prog"><div id="progbar"></div></div>
+    <span class="prog-lab" id="proglab">0 %</span>
+  </div>
+  <div id="content"></div>
+  <div id="running"></div>
+</div>
+
+<footer>
+  <div class="wrap" style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;width:100%">
+    <span id="footinfo">—</span>
+    <button class="lnk" id="refresh">↻ Rafraîchir</button>
+    <button class="lnk" id="export">⤓ Exporter</button>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+const LINEUP={
+  "Jeudi 13":[
+    {n:"Godsmack",g:"Alt metal · US",head:true,w:1},{n:"Primus",g:"Funk metal · US",head:true,w:1},
+    {n:"Amenra",g:"Post-metal/sludge · BE",head:true,w:2},{n:"Death Angel",g:"Thrash · US",head:true,w:2},
+    {n:"Municipal Waste",g:"Crossover thrash · US",head:true,w:1},{n:"Oomph!",g:"Industrial · DE",w:3},
+    {n:"Kittie",g:"Nu/groove · CA",w:3},{n:"200 Stab Wounds",g:"Death · US",w:4},
+    {n:"Battlesnake",g:"Heavy/speed · AU",w:5},{n:"Sanguisugabogg",g:"Death · US",w:4},
+    {n:"Gaerea",g:"Black metal · PT",w:3},{n:"Bloodbath",g:"Death · SE",w:2},
+    {n:"Unearth",g:"Metalcore · US",w:4},{n:"Komodrag & The Mounodor",g:"Stoner/psych · FR",w:6},
+    {n:"Pilori",g:"Hardcore · FR",w:6},{n:"Celkilt x Bagad Ar Meilhoù Glaz",g:"Celtic punk · FR",w:7},
+    {n:"Denez",g:"Chant breton · FR",w:7},{n:"FauxX",g:"Metal · FR",w:8},{n:"Brieg Guerveno",g:"Rock breton · FR",w:7}
+  ],
+  "Vendredi 14":[
+    {n:"Slaughter to Prevail",g:"Deathcore · RU/US",head:true,w:1},{n:"Lord of the Lost",g:"Dark/indus · DE",head:true,w:2},
+    {n:"Mass Hysteria",g:"Metal indus · FR",head:true,w:1},{n:"Paradise Lost",g:"Gothic/doom · UK",head:true,w:2},
+    {n:"Emperor",g:"Black metal · NO",head:true,w:3},{n:"Soen",g:"Prog metal · SE",w:2},
+    {n:"Alcest",g:"Blackgaze · FR",w:3},{n:"Chelsea Grin",g:"Deathcore · US",w:4},
+    {n:"Textures",g:"Prog/djent · NL",w:3},{n:"Master Boot Record",g:"Chiptune metal · IT",w:5},
+    {n:"Coroner",g:"Tech thrash · CH",w:4},{n:"Cage Fight",g:"Hardcore/thrash · UK",w:5},
+    {n:"Eihwar",g:"Viking war · FR",w:6},{n:"Hellripper",g:"Speed/black · UK",w:5},
+    {n:"Iotunn",g:"Prog death · DK",w:4},{n:"Bölzer",g:"Death/black · CH",w:5},
+    {n:"Darkened Nocturn Slaughtercult",g:"Black metal · DE",w:6},{n:"Miracle of Sound",g:"Geek rock · IE",w:7},
+    {n:"Nawather",g:"Oriental death · TN",w:6},{n:"Skaphos",g:"Black/death · DE",w:7},
+    {n:"Stille Volk",g:"Folk pagan · FR",w:7},{n:"Unleashed",g:"Death · SE",w:5},
+    {n:"Urne",g:"Sludge/prog · UK",w:6},{n:"Vansind",g:"Folk metal · DK",w:7},
+    {n:"Visions of Atlantis",g:"Symphonic · AT",w:6},{n:"Guineapig",g:"Grindcore · BE",w:8},
+    {n:"Filth",g:"Hardcore · FR",w:8},{n:"Gravity",g:"Beatdown · FR",w:8},
+    {n:"Hrafngrímr",g:"Folk/black · FR",w:8},{n:"Ice Sealed Eyes",g:"Death/doom · FR",w:8}
+  ],
+  "Samedi 15":[
+    {n:"Within Temptation",g:"Symphonic · NL",head:true,w:1},{n:"Eisbrecher",g:"NDH/indus · DE",head:true,w:2},
+    {n:"Leprous",g:"Prog · NO",head:true,w:2},{n:"Perturbator",g:"Darksynth · FR",head:true,w:1},
+    {n:"Anaal Nathrakh",g:"Extreme/black · UK",head:true,w:3},{n:"Omnium Gatherum",g:"Melodic death · FI",w:3},
+    {n:"Nevermore",g:"Prog/power · US",w:2},{n:"Necrowretch",g:"Black/death · FR",w:5},
+    {n:"Aorlhac",g:"Black metal · FR",w:5},{n:"Sierra",g:"Stoner/post · CA",w:4},
+    {n:"Veins",g:"Hardcore · FR",w:6},{n:"Cancer",g:"Death · UK",w:4},
+    {n:"Basaalt",g:"Heavy · FR",w:6},{n:"Bruit ≤",g:"Post-rock · FR",w:4},
+    {n:"Grave",g:"Death · SE",w:4},{n:"Ill Niño",g:"Nu metal · US",w:3},
+    {n:"Mur",g:"Post-hardcore · FR",w:7},{n:"NanowaR of Steel",g:"Comedy metal · IT",w:6},
+    {n:"The Casualties",g:"Street punk · US",w:5},{n:"Frog Leap",g:"Metal covers · NO",w:7},
+    {n:"Steve'n'Seagulls",g:"Bluegrass metal · FI",w:7},{n:"Ashen",g:"Death · AU",w:6},
+    {n:"Rectal Smegma",g:"Goregrind · NL",w:8},{n:"Les 3 Fromages",g:"Comedy · FR",w:8},
+    {n:"Jetsex",g:"Punk · FR",w:8},{n:"Monde de Merde",g:"Punk · FR",w:8},
+    {n:"Orden Ogan",g:"Power metal · DE",w:5},{n:"Slift",g:"Psych/space rock · FR",w:4},
+    {n:"Svinkels Family & Friends",g:"Rap/crossover · FR",w:7},{n:"Shady Fat Kats",g:"Rock · FR",w:8}
+  ],
+  "Dimanche 16":[
+    {n:"Judas Priest",g:"Heavy metal · UK",head:true,w:1},{n:"Airbourne",g:"Hard rock · AU",head:true,w:1},
+    {n:"Arch Enemy",g:"Melodic death · SE",head:true,w:1},{n:"Deafheaven",g:"Blackgaze · US",head:true,w:2},
+    {n:"Kim Dracula",g:"Genre-bending · AU",head:true,w:2},{n:"Cryptopsy",g:"Tech death · CA",head:true,w:3},
+    {n:"Voivod",g:"Prog thrash · CA",w:3},{n:"Fit For An Autopsy",g:"Deathcore · US",w:3},
+    {n:"Vader",g:"Death · PL",w:4},{n:"Sacred Reich",g:"Thrash · US",w:4},
+    {n:"Signs of the Swarm",g:"Deathcore · US",w:5},{n:"Heretoir",g:"Post-black · DE",w:5},
+    {n:"Witch Club Satan",g:"Black metal · NO",w:6},{n:"Heavy//Hitter",g:"Hardcore · US",w:6},
+    {n:"Jools",g:"Metal · FR",w:8},{n:"Monkeys On Mars",g:"Groove · FR",w:8},
+    {n:"Internal Bleeding",g:"Brutal death · US",w:6},{n:"Castle Rat",g:"Doom · US",w:5},
+    {n:"Holy Mother",g:"Heavy · US",w:7},{n:"John Cxnnor",g:"Indus/metal · FR",w:7},
+    {n:"Modder",g:"Groove/indus · BE",w:7},{n:"Pain Magazine",g:"Hardcore · FR",w:8},
+    {n:"Red Sun Atacama",g:"Stoner · CL",w:6},{n:"Shaârghot",g:"Indus/dark · FR",w:6},
+    {n:"Warning",g:"Doom · UK",w:7},{n:"Wormsand",g:"Sludge · FR",w:8},
+    {n:"Coltaine",g:"Folk/atmo · DE",w:7},{n:"Killers",g:"Heavy metal · FR",w:5},
+    {n:"Les Hommes Crabes",g:"Punk · FR",w:8},{n:"Eyes",g:"Hardcore · DK",w:7}
+  ]
+};
+const DAYS=Object.keys(LINEUP);
+const RANK={"A+":4,"A":3,"B":2,"C":1,"X":0};
+const DATEMAP={"Jeudi 13":"13 août","Vendredi 14":"14 août","Samedi 15":"15 août","Dimanche 16":"16 août"};
+
+const CFG="moto2026_cfg";
+let cfg=JSON.parse(localStorage.getItem(CFG)||"null");
+let DATA={users:{}};
+let curView="Jeudi 13";
+let filterTodo=false,filterNoted=false,searchQ="";
+let saveTimer=null;
+
+const $=s=>document.querySelector(s);
+const dot=$("#syncdot");
+const setDot=s=>dot.className="syncdot"+(s?" "+s:"");
+const toastEl=$("#toast");
+let toastT=null;
+function toast(msg){toastEl.textContent=msg;toastEl.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove("show"),1600)}
+
+const api=()=>"https://api.jsonbin.io/v3/b/"+cfg.bin;
+const headers=()=>({"Content-Type":"application/json","X-Master-Key":cfg.key,"X-Bin-Meta":"false"});
+
+async function pull(){setDot("busy");try{
+  const r=await fetch(api()+"/latest",{headers:headers()});
+  if(!r.ok)throw new Error(r.status);
+  const j=await r.json();DATA=(j&&j.users)?j:{users:{}};
+  if(!DATA.users[cfg.name])DATA.users[cfg.name]={grades:{},listened:{}};
+  setDot("");return true;
+}catch(e){setDot("err");console.error(e);return false}}
+async function push(){setDot("busy");try{
+  const r=await fetch(api(),{method:"PUT",headers:headers(),body:JSON.stringify(DATA)});
+  if(!r.ok)throw new Error(r.status);setDot("");return true;
+}catch(e){setDot("err");console.error(e);return false}}
+function queuePush(){clearTimeout(saveTimer);saveTimer=setTimeout(push,600)}
+const me=()=>DATA.users[cfg.name]||(DATA.users[cfg.name]={grades:{},listened:{}});
+
+/* GATE */
+function openGate(p){$("#gate").classList.remove("hidden");if(p&&cfg){$("#in-name").value=cfg.name;$("#in-bin").value=cfg.bin;$("#in-key").value=cfg.key}}
+$("#gate-go").onclick=async()=>{
+  const name=$("#in-name").value.trim(),bin=$("#in-bin").value.trim(),key=$("#in-key").value.trim();
+  if(!name||!bin||!key){$("#gate-err").textContent="Remplis les trois champs.";return}
+  $("#gate-err").textContent="Connexion…";
+  cfg={name,bin,key};
+  if(!await pull()){$("#gate-err").textContent="Échec — vérifie le Bin ID et la Master Key.";cfg=JSON.parse(localStorage.getItem(CFG)||"null");return}
+  localStorage.setItem(CFG,JSON.stringify(cfg));await push();
+  $("#gate").classList.add("hidden");boot();
+};
+$("#me-change").onclick=()=>openGate(true);
+
+/* TABS */
+const tabsEl=$("#tabs");
+function buildTabs(){tabsEl.innerHTML="";
+  DAYS.forEach(t=>{const b=document.createElement("button");b.className="tab"+(t===curView?" active":"");b.textContent=t;b.onclick=()=>{curView=t;render()};tabsEl.appendChild(b)});
+  const r=document.createElement("button");r.className="tab run"+(curView==="run"?" active":"");r.textContent="▶ Mon running";r.onclick=()=>{curView="run";render()};tabsEl.appendChild(r);
+}
+function setActiveTab(){[...tabsEl.children].forEach((b,i)=>{const isRun=i===DAYS.length;b.classList.toggle("active",isRun?curView==="run":b.textContent===curView)})}
+
+/* RENDER */
+const content=$("#content"),runningEl=$("#running");
+function render(){
+  setActiveTab();
+  const isRun=curView==="run";
+  $("#toolrow").style.display=isRun?"none":"flex";
+  $("#progwrap").style.display=isRun?"none":"flex";
+  if(isRun){content.style.display="none";runningEl.classList.add("show");renderRunning()}
+  else{runningEl.classList.remove("show");content.style.display="block";renderDay(curView)}
+  updateStats();
+}
+function othersFor(b){const out=[];Object.keys(DATA.users).forEach(u=>{if(u===cfg.name)return;const gr=DATA.users[u].grades[b];if(gr)out.push({u,gr})});return out}
+
+function renderDay(day){
+  const idx=DAYS.indexOf(day)+1,G=me().grades,L=me().listened;
+  let html=`<div class="day-h"><span class="badge">J${idx}</span><h2>${day}</h2><span class="count">${DATEMAP[day]} · ${LINEUP[day].length} groupes</span></div><div class="card-list">`;
+  LINEUP[day].forEach(band=>{
+    const grade=G[band.n]||"",done=L[band.n];
+    let hide=false;
+    if(filterTodo&&done)hide=true;
+    if(filterNoted&&grade)hide=true;
+    if(searchQ&&!(band.n.toLowerCase().includes(searchQ)||band.g.toLowerCase().includes(searchQ)))hide=true;
+    const others=othersFor(band.n);
+    html+=`<div class="band${band.head?' head':''}${hide?' hidden':''}">
+      <div class="band-top">
+        <div class="b-info">
+          <div class="b-name">${band.n}${band.head?'<span class="star">★</span>':''}</div>
+          <div class="b-meta">${band.g}<span class="wk">sem. ${band.w}</span></div>
+        </div>
+        <button class="iconbtn spot" data-spot="${band.n}" title="Écouter sur Spotify">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.6 14.4a.6.6 0 01-.86.2c-2.35-1.44-5.3-1.76-8.8-.96a.62.62 0 11-.28-1.2c3.83-.88 7.1-.5 9.74 1.1.3.18.4.56.2.86zm1.23-2.74a.78.78 0 01-1.07.26c-2.69-1.65-6.79-2.13-9.97-1.17a.78.78 0 11-.45-1.49c3.63-1.1 8.15-.56 11.24 1.33.36.22.48.7.25 1.07zm.1-2.85C14.84 8.95 9.6 8.76 6.6 9.67a.93.93 0 11-.54-1.78c3.44-1.04 9.23-.84 12.87 1.32a.93.93 0 11-.95 1.6z"/></svg>
+        </button>
+        <button class="iconbtn listen${done?' done':''}" data-listen="${band.n}" title="Marquer écouté">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </button>
+      </div>
+      <div class="grades">${["A+","A","B","C","X"].map(gr=>`<button class="g${grade===gr?' sel':''}" data-g="${gr}" data-band="${band.n}">${gr}</button>`).join("")}</div>
+      ${others.length?`<div class="others"><span class="lbl">Aussi noté :</span>`+others.map(o=>{const cg=o.gr==="A+"?"cg-aplus":o.gr==="A"?"cg-a":o.gr==="B"?"cg-b":o.gr==="C"?"cg-c":"cg-x";return `<span class="chip ${cg}">${o.u}<b>${o.gr}</b></span>`}).join("")+`</div>`:""}
+    </div>`;
+  });
+  html+="</div>";
+  content.innerHTML=html;
+  content.querySelectorAll(".g").forEach(btn=>btn.onclick=()=>{
+    const b=btn.dataset.band,gr=btn.dataset.g,G=me().grades;
+    if(G[b]===gr)delete G[b];else G[b]=gr;
+    renderDay(curView);updateStats();queuePush();
+  });
+  content.querySelectorAll(".listen").forEach(btn=>btn.onclick=()=>{
+    const b=btn.dataset.listen,L=me().listened;
+    if(L[b]){delete L[b]}else{L[b]=true;toast("✓ "+b+" écouté")}
+    renderDay(curView);updateStats();queuePush();
+  });
+  content.querySelectorAll(".spot").forEach(btn=>btn.onclick=()=>window.open("https://open.spotify.com/search/"+encodeURIComponent(btn.dataset.spot),"_blank"));
+}
+
+function renderRunning(){
+  const G=me().grades;
+  let total=0;Object.values(G).forEach(g=>{if(RANK[g]>=2)total++});
+  let html=`<div class="run-hero"><h2>Ton running perso</h2><p>${total} concerts retenus · trié par tes priorités, A+ d'abord. C et X écartés.</p></div>`;
+  html+=`<div class="run-tip"><span class="ic">⚑</span><span>Quand les horaires officiels sortiront, les seuls vrais arbitrages seront tes jours à plusieurs A+. Ils sont signalés ci-dessous.</span></div>`;
+  DAYS.forEach(day=>{
+    const picks=LINEUP[day].filter(b=>RANK[G[b.n]]>=2).sort((a,b)=>RANK[G[b.n]]-RANK[G[a.n]]||(b.head?1:0)-(a.head?1:0));
+    html+=`<div class="run-day"><h3>${day} <span class="dcount">· ${picks.length} retenus</span></h3>`;
+    if(!picks.length){html+=`<div class="run-empty">Rien noté A/B ici. File dans l'onglet ${day} pour noter.</div>`}
+    else{
+      const aplus=picks.filter(b=>G[b.n]==="A+");
+      if(aplus.length>=2)html+=`<div class="clash">⚠ ${aplus.length} A+ ce jour — vérifie les chevauchements : ${aplus.map(b=>b.n).join(" · ")}</div>`;
+      picks.forEach(b=>{
+        const gr=G[b.n],cls=gr==="A+"?"rb-aplus":gr==="A"?"rb-a":"rb-b";
+        const others=othersFor(b.n).filter(o=>RANK[o.gr]>=3);
+        html+=`<div class="run-line"><span class="run-badge ${cls}">${gr}</span><div style="flex:1"><div class="rn">${b.n}</div><div class="rmeta">${b.g}</div>${others.length?`<div class="run-others">+ ${others.map(o=>o.u+" "+o.gr).join(" · ")}</div>`:""}</div></div>`;
+      });
+    }
+    html+=`</div>`;
+  });
+  runningEl.innerHTML=html;
+}
+
+function updateStats(){
+  const G=me().grades,L=me().listened;
+  let total=0,aplus=0,a=0,done=0;
+  DAYS.forEach(d=>LINEUP[d].forEach(b=>{total++;if(G[b.n]==="A+")aplus++;if(G[b.n]==="A")a++;if(L[b.n])done++}));
+  $("#st-total .num").textContent=total;$("#st-aplus .num").textContent=aplus;$("#st-a .num").textContent=a;$("#st-done .num").textContent=done;
+  const pct=total?Math.round(done/total*100):0;
+  $("#progbar").style.width=pct+"%";$("#proglab").textContent=pct+" % écouté";
+  $("#footinfo").textContent=Object.keys(DATA.users).length+" personne(s) · "+done+"/"+total+" écoutés";
+}
+
+/* TOOLS */
+$("#f-todo").onclick=function(){filterTodo=!filterTodo;this.classList.toggle("on",filterTodo);if(curView!=="run")renderDay(curView)};
+$("#f-noted").onclick=function(){filterNoted=!filterNoted;this.classList.toggle("on",filterNoted);if(curView!=="run")renderDay(curView)};
+$("#searchbox").oninput=function(){searchQ=this.value.trim().toLowerCase();if(curView!=="run")renderDay(curView)};
+$("#refresh").onclick=async()=>{await pull();render();toast("↻ À jour")};
+$("#export").onclick=()=>{const blob=new Blob([JSON.stringify(DATA,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="motocultor2026-notes.json";a.click()};
+
+/* BOOT */
+function boot(){
+  $("#me-name").textContent=cfg.name;
+  $("#me-av").textContent=cfg.name.charAt(0).toUpperCase();
+  buildTabs();render();
+  document.addEventListener("visibilitychange",async()=>{if(!document.hidden){await pull();render()}});
+}
+(async function init(){
+  if(cfg){if(await pull()){$("#gate").classList.add("hidden");boot();return}}
+  openGate(true);
+})();
+</script>
+</body>
+</html>
